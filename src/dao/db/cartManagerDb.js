@@ -1,10 +1,14 @@
 const CartModel = require("../models/carts.model");
 
+const ProductManagerDb = require("../db/productManagerDb");
+const productManagerDb = new ProductManagerDb();
+
 class CartManager{
     async createCart(){
         try {
             const newCart = new CartModel({products: []});
             await newCart.save();
+            
             return newCart;
         } catch (error) {
             console.log("Error al crear el nuevo carrito.");
@@ -27,12 +31,19 @@ class CartManager{
 
     async addProductToCart(cid, productId, quantity = 1){
         try {
+            const product = await productManagerDb.getProductById(productId);
+
+            if(!product){
+                console.log("Producto no existente.");
+                return;
+            }
+
             const cart = await this.getCartById(cid);
 
             const existProduct = cart.products.find(item => item.product.toString() === productId);
 
-            if(!existProduct){
-                existProduct.quenatity += quantity;
+            if(existProduct){
+                existProduct.quantity += quantity;
             }else{
                 cart.products.push({product: productId, quantity});
             }
@@ -42,6 +53,7 @@ class CartManager{
 
             await cart.save();
             return cart;
+
         } catch (error) {
             console.error("Error al agregar el product al carrito.", error);
         }

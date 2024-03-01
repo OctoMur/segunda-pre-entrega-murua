@@ -6,7 +6,7 @@ const productManager = new ProductManager()
 
 // const productsModel = require("../models/products.model");
 
-router.get("/products", async (req, res) => {
+router.get("/", async (req, res) => {
     try {
     const limit = parseInt(req.query.limit);
 
@@ -24,13 +24,9 @@ router.get("/products", async (req, res) => {
     }
 });
 
-router.get("/products/:pid", async (req, res) => {
+router.get("/:pid", async (req, res) => {
     try {
         const id = req.params.pid;
-
-        if (isNaN(id) || id <= 0) {
-            return res.status(400).json({ error: "ID de producto no válido" });
-        }
 
         // Busca el producto por ID
         const foundProduct = await productManager.getProductById(id);
@@ -41,34 +37,50 @@ router.get("/products/:pid", async (req, res) => {
             res.status(404).json({ error: "Producto no encontrado" });
         }
 
-
         } catch (error) {
         // console.error("Error al procesar la solicitud:", error);
         res.status(500).json({ error: "Error interno del servidor" });
         }
 });
 
-router.post("/products", (req, res) =>{
+router.post("/", async (req, res) =>{
     const newProduct = req.body;
 
-    productManager.addProduct(newProduct);
-    console.log(productManager.products)
-    res.send({status:"sucess", message: "producto creado"})
+    const added = await productManager.addProduct(newProduct);
+
+    if(added){
+        res.send({status:"sucess", message: "producto creado"});
+    }else{
+        res.send({status:"failure", message:"producto no creado"});
+    }
 })
 
-router.put("/products/:pid", (req, res) =>{
+router.put("/:pid", async (req, res) =>{
     const {pid} = req.params;
     const productUpdated = req.body;
-    console.log(pid)
-    productManager.updateProduct(pid, productUpdated)
-    res.send({status:"sucess", message: "producto actualizado"})
+
+    console.log(pid);
+
+    const updated = await productManager.updateProduct(pid, productUpdated);
+
+    if(updated){
+        res.send({status:"sucess", message: "producto actualizado"});
+    }else{
+        res.status(404).send({message: "El producto que desea actualizar no existe"});
+    }
+    
 })
 
-router.delete("/products/:pid", (req, res) =>{
+router.delete("/:pid", async (req, res) =>{
     const {pid} = req.params;
 
-    productManager.deleteProduct(pid);
-    res.send({status: "success", message: "Producto eliminado"});
+    const deleted = await productManager.deleteProduct(pid);
+    
+    if(deleted){
+        res.send({status: "success", message: "Producto eliminado"});
+    }else{
+        res.status(404).send({message: "el producto no se elimino, ID no encontrada"});
+    }
 })
 
 module.exports = router;

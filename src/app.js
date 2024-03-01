@@ -19,8 +19,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static("./src/public"));
 
 //Routes
-app.use("/api", productsRouter);
-app.use("/api", cartRouter);
+app.use("/api/products", productsRouter);
+app.use("/api/carts", cartRouter);
 app.use(viewsRouter)
 
 //Handlebars

@@ -1,54 +1,36 @@
 const ProductModel = require("../models/products.model");
 
 class ProductManagerDb{
-    static idProduct = 0;
-
-    /*async verifyProducts() {
-        try {
-            const productsList = await this.getProducts();
-            if (productsList && productsList.length > 0) {
-                this.products = productsList;
-            } else {
-                console.log('La lista de productos está vacía o no se pudo leer.');
-            }
-        } catch (error) {
-            console.error('Error al verificar productos:', error.message);
-        }
-    }*/
-
 
     async addProduct(newProduct){
         //destructuracion del objeto
-        let {title, description, code, price, status, stock, category, thumbnails} = newProduct;
+        let {title, description, code, price, stock, category, thumbnails} = newProduct;
 
         //Validaciones
-        if(!title || !description || !code || !price || !status || !stock || !category || !thumbnails){
+        if(!title || !description || !code || !price || !stock || !category){
             console.log("Hay uno o mas campos vacios")
-            return;
+            return false;
         }
 
-        const existingProduct = await productModel.findOne({code:code});
+        const existingProduct = await ProductModel.findOne({code:code});
 
         if(existingProduct){
             console.log("Codigo ya registrado")
-            return;
+            return false;
         }
 
-        const product= new productModel({
+        const product= new ProductModel({
             title: title,
             description: description,
             code: code,
             price: price,
-            status: status,
+            status: true,
             stock: stock,
             category: category,
             thumbnails: thumbnails
         })
         await product.save();
-
-        //sumar el producto al array y pushear a la DB
-        this.products.push(product);
-        await this.saveFile(this.products);
+        return true;
     }
 
     async getProducts(){
@@ -62,7 +44,7 @@ class ProductManagerDb{
 
     async getProductById(id){
         try {
-            const productFinded = await productModel.findById(id);
+            const productFinded = await ProductModel.findById(id);
 
             if(!productFinded){
                 console.log("Producto no encontrado");
@@ -78,7 +60,7 @@ class ProductManagerDb{
 
     async updateProduct(id, dataUpdate){
         try {
-            const productUpdated = await productModel.findByIdAndUpdate(id);
+            const productUpdated = await ProductModel.findByIdAndUpdate(id, dataUpdate);
 
             if(!productUpdated){
                 console.log("Producto no encontrado");
@@ -87,6 +69,7 @@ class ProductManagerDb{
 
             console.log("Producto actualizado.")
             return productUpdated;
+
         } catch (error) {
             console.log("Error al actualizar el archivo", error)
         }
@@ -95,14 +78,15 @@ class ProductManagerDb{
     async deleteProduct(id){
         try {
             
-            const productDelete = await productModel.findByIdAndDelete(id);
+            const productDelete = await ProductModel.findByIdAndDelete(id);
 
             if(!productDelete){
                 console.log("Producto para eliminar, no encontrado.");
-                return null;
+                return false;
             }
 
             console.log("Producto eliminado.")
+            return true;
         } catch (error) {
             console.log("Error al acceder a la base de datos.")
         }
