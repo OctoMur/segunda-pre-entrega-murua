@@ -4,20 +4,31 @@ const router = express.Router();
 const ProductManager = require("../dao/db/productManagerDb")
 const productManager = new ProductManager()
 
-// const productsModel = require("../models/products.model");
-
 router.get("/", async (req, res) => {
     try {
-    const limit = parseInt(req.query.limit);
+    const {limit = 3, page = 1, sort, query} = req.query;
 
-    const products = await productManager.getProducts();
-    
-        if (!isNaN(limit) && limit > 0) {
-            const productsListLimited = products.slice(0, limit);
-            res.send(productsListLimited);
-        } else {
-            res.send(products);
-        }
+    const products = await productManager.getProducts({
+        limit: parseInt(limit),
+        page: parseInt(page),
+        sort,
+        query,
+    });
+
+    res.json({
+        status: 'success',
+        payload: products,
+        /*totalPages: products.totalPages,
+        prevPage: products.prevPage,
+        nextPage: products.nextPage,
+        page: products.page,
+        hasPrevPage: products.hasPrevPage,
+        hasNextPage: products.hasNextPage,
+        prevLink: products.hasPrevPage ? `/api/products?limit=${limit}&page=${products.prevPage}&sort=${sort}&query=${query}` : null,
+        nextLink: products.hasNextPage ? `/api/products?limit=${limit}&page=${products.nextPage}&sort=${sort}&query=${query}` : null,*/
+
+        //el comentario anterior lo hice porque me parece que es un error del profesor y la informacion sale repetida 2 veces en postman.
+        })
     } catch (error) {
     console.error("Error al procesar la solicitud:", error);
     res.send("Error interno del servidor");

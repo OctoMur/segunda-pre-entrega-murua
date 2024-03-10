@@ -58,6 +58,93 @@ class CartManager{
             console.error("Error al agregar el product al carrito.", error);
         }
     }
+
+    async deleteProduct(cid, pid){
+        try {
+            const cart = await CartModel.findById(cid);
+
+            if (!cart) {
+                throw new Error('Carrito no encontrado');
+            }
+
+            const exist = cart.products.some(item => item.product == pid);
+
+            if(!exist){
+                throw new Error("Producto no encontrado en el carrito.");;
+            }
+
+            cart.products = cart.products.filter(item => item.product._id.toString() !== pid);
+            await cart.save();
+            return cart;
+
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async updateCart(cid, updatedProducts) {
+        try {
+            const cart = await CartModel.findById(cid);
+
+            if (!cart) {
+                throw new Error('Carrito no encontrado');
+            }
+
+            cart.products = updatedProducts;
+
+            cart.markModified('products');
+
+            await cart.save();
+
+            return cart;
+        } catch (error) {
+            console.error('Error al actualizar el carrito en el gestor', error);
+            throw error;
+        }
+    }
+
+    async updtProductQ(cid, pid, q){
+        try {
+            const cart = await CartModel.findById(cid);
+
+            if (!cart) {
+                throw new Error("Carrito no encontrado");
+            }
+
+            const foundedIndx = cart.products.findIndex(item => item.product._id == pid);
+
+            if(foundedIndx !== -1){
+                cart.products[foundedIndx].quantity = q;
+
+                cart.markModified('products');
+
+                await cart.save();
+                return cart;
+            } else{
+                throw new Error("Producto no encontrado en el carrito.");
+            }
+
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async emptyCart(cid){
+        try {
+            const cart = await CartModel.findByIdAndUpdate(
+                cid,
+                { products: [] },
+                { new: true }
+            );
+
+            if (!cart) {
+                throw new Error('Carrito no encontrado');
+            }
+            return cart;
+        } catch (error) {
+            throw error;
+        }
+    }
 }
 
 module.exports = CartManager;
